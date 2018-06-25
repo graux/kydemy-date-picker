@@ -1,6 +1,6 @@
 {
   "name": "vue-bulma-kydemy-datepicker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Vue2 + Bulma + Moment.js Date and Time Picker. Made for the Kydemy Project.",
   "main": "src/index.js",
   "peerDependencies": {

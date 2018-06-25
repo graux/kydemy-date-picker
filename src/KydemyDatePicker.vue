@@ -894,9 +894,6 @@ export default {
                     text-align: center;
                     font-weight: bold;
                     padding: 0.25rem;
-                    &.is-today {
-                        border: solid 1px $primary;
-                    }
                     &:active, &:focus {
                         outline: none;
                     }
@@ -914,6 +911,11 @@ export default {
                     .button {
                         font-weight: normal;
                         color: $grey-lighter;
+                    }
+                }
+                &.is-today {
+                    .button {
+                        border: solid 1px $primary;
                     }
                 }
                 &.is-hightlighted {
