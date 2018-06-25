@@ -6,7 +6,9 @@
   "peerDependencies": {
     "bulma": ">=0.54",
     "vue": ">=2",
-    "vue2-portal": "https://github.com/graux/vue2-portal#c998723"
+    "vue2-portal": "https://github.com/graux/vue2-portal#c998723",
+    "moment": "^2.18.1",
+    "moment-business": "^3.0.1"
   },
   "scripts": {},
   "repository": "vue-bulma-kydemy-datepicker",
