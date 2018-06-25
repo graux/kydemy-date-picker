@@ -717,7 +717,7 @@ export default {
 }
 </script>
 <style lang="scss">
-    @import '~bulma/sass/utilities/initial-variables';
+    @import '~bulma';
 
     .kydemy-datetime-picker {
         @media (max-width: 768px) {
