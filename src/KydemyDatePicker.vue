@@ -651,6 +651,13 @@ export default {
     this.displayMinutes = Array.apply(0, Array(12)).map(function (_, i) {
       return moment({minute: i * 5}).format('mm')
     })
+    if (this.$eventHub) {
+      this.$eventHub.$on('expand-dropdown', function (compUID) {
+        if (self.showDateTimePicker && self._uid !== compUID) {
+          self.showDateTimePicker = false
+        }
+      })
+    }
   },
   watch: {
     displayDate: function (newDate) {
@@ -709,6 +716,9 @@ export default {
     showDateTimePicker: function (newVal) {
       if (newVal === true) {
         window.addEventListener('keydown', this.onKeyDown)
+        if (this.$eventHub) {
+          this.$eventHub.$emit('expand-dropdown', this._uid)
+        }
       } else {
         window.removeEventListener('keydown', this.onKeyDown)
       }
