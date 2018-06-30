@@ -250,7 +250,9 @@ export default {
       displayMinutes: null,
       selectedDays: [],
       selectedTime: null,
-      targetPortal: 'portal-dropdown'
+      targetPortal: 'portal-dropdown',
+      oldDisplayDate: null,
+      oldSelectedDays: []
     }
   },
   methods: {
@@ -313,56 +315,62 @@ export default {
       if (newDate === undefined) {
         newDate = this.displayDate
       }
-      const calendarStart = newDate.clone().startOf('month').weekday(0)
-      const calendarEnd = newDate.clone().endOf('month').weekday(6)
-      const today = moment()
+      const iso = newDate.toISOString(true)
+      const selDays = this.selectedDays.join(',')
+      if (iso !== this.oldDisplayDate || this.oldSelectedDays !== selDays) {
+        this.oldDisplayDate = iso
+        this.oldSelectedDays = selDays
+        const calendarStart = newDate.clone().startOf('month').weekday(0)
+        const calendarEnd = newDate.clone().endOf('month').weekday(6)
+        const today = moment()
 
-      let day = calendarStart.clone()
-      let days = []
-      let iso = null
-      let classes = ''
-      let selected = null
-      while (day.isSameOrBefore(calendarEnd, 'day')) {
-        iso = day.format('YYYY-MM-DD')
-        classes = ''
-        selected = this.isDaySelected(iso)
-        if (!business.isWeekDay(day)) {
-          classes += ' is-weekend'
-        }
-        if (!day.isSame(newDate, 'month')) {
-          classes += ' is-adjacent'
-        }
-        if (day.isSame(today, 'day')) {
-          classes += ' is-today'
-        }
-        if (selected) {
-          classes += ' is-selected'
-        }
-        if (this.isDayHighlighted(day)) {
-          classes += ' is-hightlighted'
-        }
-        if (this.range) {
-          if (this.isDayInRange(day)) {
-            classes += ' in-range'
-          } else if (this.selectedDays.length === 2) {
-            if (day.isSame(this.selectedDays[0])) {
-              classes += ' range-start'
-            } else if (day.isSame(this.selectedDays[1])) {
-              classes += ' range-end'
+        let day = calendarStart.clone()
+        let days = []
+        let iso = null
+        let classes = ''
+        let selected = null
+        while (day.isSameOrBefore(calendarEnd, 'day')) {
+          iso = day.format('YYYY-MM-DD')
+          classes = ''
+          selected = this.isDaySelected(iso)
+          if (!business.isWeekDay(day)) {
+            classes += ' is-weekend'
+          }
+          if (!day.isSame(newDate, 'month')) {
+            classes += ' is-adjacent'
+          }
+          if (day.isSame(today, 'day')) {
+            classes += ' is-today'
+          }
+          if (selected) {
+            classes += ' is-selected'
+          }
+          if (this.isDayHighlighted(day)) {
+            classes += ' is-hightlighted'
+          }
+          if (this.range) {
+            if (this.isDayInRange(day)) {
+              classes += ' in-range'
+            } else if (this.selectedDays.length === 2) {
+              if (day.isSame(this.selectedDays[0])) {
+                classes += ' range-start'
+              } else if (day.isSame(this.selectedDays[1])) {
+                classes += ' range-end'
+              }
             }
           }
-        }
 
-        days.push({
-          mnt: day,
-          selected: selected,
-          classes: classes.trim(),
-          disabled: this.isDayDisabled(day),
-          iso: iso
-        })
-        day = day.clone().add(1, 'day')
+          days.push({
+            mnt: day,
+            selected: selected,
+            classes: classes.trim(),
+            disabled: this.isDayDisabled(day),
+            iso: iso
+          })
+          day = day.clone().add(1, 'day')
+        }
+        this.renderDays = days
       }
-      this.renderDays = days
     },
     isDaySelected: function (iso) {
       if (this.selectedDays.length > 0) {
@@ -674,8 +682,10 @@ export default {
       this.displayYears = years
     },
     selectedTime: function (val) {
-      const tokens = val.split(':')
-      this.displayDate = this.displayDate.clone().hours(parseInt(tokens[0])).minutes(parseInt(tokens[1]))
+      if (this.timeEnabled === true) {
+        const tokens = val.split(':')
+        this.displayDate = this.displayDate.clone().hours(parseInt(tokens[0])).minutes(parseInt(tokens[1]))
+      }
     },
     selectedDays: function (val) {
       if (val.length > 0) {
@@ -897,8 +907,10 @@ export default {
                 text-align: center;
                 flex: none;
                 width: 14.285714286%;
-                padding-top: 0.25rem;
-                padding-bottom: 0.25rem;
+                padding-top: 0rem;
+                padding-bottom: 0rem;
+                margin-top: 0rem;
+                margin-bottom: 0rem;
                 .button {
                     width: 100%;
                     text-align: center;
@@ -1088,5 +1100,4 @@ export default {
             overflow: hidden;
         }
     }
-
 </style>
