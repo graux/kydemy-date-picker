@@ -252,7 +252,8 @@ export default {
       selectedTime: null,
       targetPortal: 'portal-dropdown',
       oldDisplayDate: null,
-      oldSelectedDays: []
+      oldSelectedDays: [],
+      lastEmitedValue: null
     }
   },
   methods: {
@@ -274,7 +275,7 @@ export default {
           this.selectedDays = [selDate]
         }
         if (this.selectedDays.length === 2) {
-          this.$emit('input', this.getSelectedDays())
+          this.emitSelectedDays()
           if (this.autoClose === true) {
             this.showDateTimePicker = false
           }
@@ -289,14 +290,22 @@ export default {
           } else {
             this.selectedDays.push(selDate)
           }
-          this.$emit('input', this.getSelectedDays())
+          this.emitSelectedDays()
         } else {
           this.selectedDays = [selDate]
-          this.$emit('input', this.getSelectedDays())
+          this.emitSelectedDays()
           if (this.autoClose === true) {
             this.showDateTimePicker = false
           }
         }
+      }
+    },
+    emitSelectedDays () {
+      let value = this.getSelectedDays()
+      const valueStr = JSON.stringify(value)
+      if (this.lastEmitedValue || this.lastEmitedValue !== valueStr) {
+        this.$emit('input', value)
+        this.lastEmitedValue = valueStr
       }
     },
     nextMonth () {
@@ -489,7 +498,7 @@ export default {
       if (this.selectedDays.length === 0) {
         this.$emit('input', [this.displayDate.clone()])
       } else {
-        this.$emit('input', this.getSelectedDays())
+        this.emitSelectedDays()
       }
     },
     selectHour: function (hour) {
