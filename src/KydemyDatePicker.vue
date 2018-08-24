@@ -2,6 +2,19 @@
     <div class="kydemy-datetime-picker"
          :class="[`is-${sizeClass}`, {'is-date-picker': dateEnabled, 'is-time-picker': timeEnabled}]">
         <portal-target :name="'portal-inline-'+componentUID"></portal-target>
+        <transition name="fade" :duration="300" v-if="modal && showDateTimePicker">
+            <div class="modal is-active kydemy-date-picker-modal">
+                <div class="modal-background"></div>
+                <div class="modal-content">
+                    <portal-target :name="'portal-modal-'+componentUID"></portal-target>
+                    <button class="button is-primary is-rounded modal-close-button" @click="showDateTimePicker=false">
+                        <span class="icon">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </transition>
         <div class="dropdown is-right" :class="{'is-active': showDateTimePicker, 'is-up': isUp}" v-if="inline !== true">
             <div class="dropdown-trigger">
                 <p class="control" :class="{'has-icons-left': iconLeft, 'has-icons-right': iconRight}">
@@ -31,7 +44,7 @@
                                 <div class="level-left">
                                     <a @click="prevYear">
                                 <span class="icon has-text-white">
-                                  <i class="fa fa-angle-left"></i>
+                                  <i class="fas fa-angle-left"></i>
                                 </span>
                                     </a>
                                 </div>
@@ -43,7 +56,7 @@
                                 <div class="level-right">
                                     <a @click="nextYear">
                                     <span class="icon has-text-white">
-                                      <i class="fa fa-angle-right"></i>
+                                      <i class="fas fa-angle-right"></i>
                                     </span>
                                     </a>
                                 </div>
@@ -53,7 +66,7 @@
                                     <div class="level-item">
                                         <a @click="prevMonth">
                                         <span class="icon is-large has-text-white">
-                                          <i class="fa fa-lg fa-chevron-circle-left"></i>
+                                          <i class="fas fa-lg fa-chevron-circle-left"></i>
                                         </span>
                                         </a>
                                     </div>
@@ -67,7 +80,7 @@
                                     <div class="level-item">
                                         <a @click="nextMonth">
                                         <span class="icon is-large has-text-white">
-                                            <i class="fa fa-lg fa-chevron-circle-right"></i>
+                                            <i class="fas fa-lg fa-chevron-circle-right"></i>
                                         </span>
                                         </a>
                                     </div>
@@ -106,10 +119,10 @@
                                                     @click="selectYear(year)"
                                                     :class="{'is-primary': displayDate.year() === year }">
                                             <span class="icon" v-if="year === -1">
-                                                <i class="fa fa-arrow-circle-left"></i>
+                                                <i class="fas fa-arrow-circle-left"></i>
                                             </span>
                                                 <span class="icon" v-else-if="year === 1">
-                                                <i class="fa fa-arrow-circle-right"></i>
+                                                <i class="fas fa-arrow-circle-right"></i>
                                             </span>
                                                 <span v-else>{{ year }}</span>
                                             </button>
@@ -206,6 +219,20 @@
 <script>
 import moment from 'moment'
 import business from 'moment-business'
+import fontawesome from '@fortawesome/fontawesome'
+import faChevronCircleLeft from '@fortawesome/fontawesome-free-solid/faChevronCircleLeft'
+import faChevronCircleRight from '@fortawesome/fontawesome-free-solid/faChevronCircleRight'
+import faAngleLeft from '@fortawesome/fontawesome-free-solid/faAngleLeft'
+import faAngleRight from '@fortawesome/fontawesome-free-solid/faAngleRight'
+import faArrowCircleLeft from '@fortawesome/fontawesome-free-solid/faArrowCircleLeft'
+import faArrowCircleRight from '@fortawesome/fontawesome-free-solid/faArrowCircleRight'
+
+fontawesome.library.add(faChevronCircleLeft)
+fontawesome.library.add(faChevronCircleRight)
+fontawesome.library.add(faAngleLeft)
+fontawesome.library.add(faAngleRight)
+fontawesome.library.add(faArrowCircleLeft)
+fontawesome.library.add(faArrowCircleRight)
 
 export default {
   props: {
@@ -221,6 +248,7 @@ export default {
     dimWeekends: {type: Boolean, default: false},
     highlighted: Array,
     disabled: Array,
+    disabledControl: Boolean,
     range: {type: Boolean, default: false},
     multiple: {type: Boolean, default: false},
     formatFunction: Function,
@@ -229,6 +257,7 @@ export default {
     autoClose: {type: Boolean, default: false},
     interactive: {type: Boolean, default: false},
     inline: {type: Boolean, default: false},
+    modal: {type: Boolean, default: false},
     placeholder: String,
     iconLeft: String,
     iconRight: String,
@@ -250,7 +279,10 @@ export default {
       displayMinutes: null,
       selectedDays: [],
       selectedTime: null,
-      targetPortal: 'portal-dropdown'
+      targetPortal: 'portal-dropdown',
+      oldDisplayDate: null,
+      oldSelectedDays: [],
+      lastEmitedValue: null
     }
   },
   methods: {
@@ -272,7 +304,7 @@ export default {
           this.selectedDays = [selDate]
         }
         if (this.selectedDays.length === 2) {
-          this.$emit('input', this.getSelectedDays())
+          this.emitSelectedDays()
           if (this.autoClose === true) {
             this.showDateTimePicker = false
           }
@@ -287,14 +319,22 @@ export default {
           } else {
             this.selectedDays.push(selDate)
           }
-          this.$emit('input', this.getSelectedDays())
+          this.emitSelectedDays()
         } else {
           this.selectedDays = [selDate]
-          this.$emit('input', this.getSelectedDays())
+          this.emitSelectedDays()
           if (this.autoClose === true) {
             this.showDateTimePicker = false
           }
         }
+      }
+    },
+    emitSelectedDays () {
+      let value = this.getSelectedDays()
+      const valueStr = JSON.stringify(value)
+      if (this.lastEmitedValue || this.lastEmitedValue !== valueStr) {
+        this.$emit('input', value)
+        this.lastEmitedValue = valueStr
       }
     },
     nextMonth () {
@@ -313,56 +353,61 @@ export default {
       if (newDate === undefined) {
         newDate = this.displayDate
       }
-      const calendarStart = newDate.clone().startOf('month').weekday(0)
-      const calendarEnd = newDate.clone().endOf('month').weekday(6)
-      const today = moment()
+      let isoDate = newDate.toISOString(true)
+      const selDays = this.selectedDays.join(',')
+      if (isoDate !== this.oldDisplayDate || this.oldSelectedDays !== selDays) {
+        this.oldDisplayDate = isoDate
+        this.oldSelectedDays = selDays
+        const calendarStart = newDate.clone().startOf('month').weekday(0)
+        const calendarEnd = newDate.clone().endOf('month').weekday(6)
+        const today = moment()
 
-      let day = calendarStart.clone()
-      let days = []
-      let iso = null
-      let classes = ''
-      let selected = null
-      while (day.isSameOrBefore(calendarEnd, 'day')) {
-        iso = day.format('YYYY-MM-DD')
-        classes = ''
-        selected = this.isDaySelected(iso)
-        if (!business.isWeekDay(day)) {
-          classes += ' is-weekend'
-        }
-        if (!day.isSame(newDate, 'month')) {
-          classes += ' is-adjacent'
-        }
-        if (day.isSame(today, 'day')) {
-          classes += ' is-today'
-        }
-        if (selected) {
-          classes += ' is-selected'
-        }
-        if (this.isDayHighlighted(day)) {
-          classes += ' is-hightlighted'
-        }
-        if (this.range) {
-          if (this.isDayInRange(day)) {
-            classes += ' in-range'
-          } else if (this.selectedDays.length === 2) {
-            if (day.isSame(this.selectedDays[0])) {
-              classes += ' range-start'
-            } else if (day.isSame(this.selectedDays[1])) {
-              classes += ' range-end'
+        let day = calendarStart.clone()
+        let days = []
+        let classes = ''
+        let selected = null
+        while (day.isSameOrBefore(calendarEnd, 'day')) {
+          isoDate = day.format('YYYY-MM-DD')
+          classes = ''
+          selected = this.isDaySelected(isoDate)
+          if (!business.isWeekDay(day)) {
+            classes += ' is-weekend'
+          }
+          if (!day.isSame(newDate, 'month')) {
+            classes += ' is-adjacent'
+          }
+          if (day.isSame(today, 'day')) {
+            classes += ' is-today'
+          }
+          if (selected) {
+            classes += ' is-selected'
+          }
+          if (this.isDayHighlighted(day)) {
+            classes += ' is-hightlighted'
+          }
+          if (this.range) {
+            if (this.isDayInRange(day)) {
+              classes += ' in-range'
+            } else if (this.selectedDays.length === 2) {
+              if (day.isSame(this.selectedDays[0])) {
+                classes += ' range-start'
+              } else if (day.isSame(this.selectedDays[1])) {
+                classes += ' range-end'
+              }
             }
           }
-        }
 
-        days.push({
-          mnt: day,
-          selected: selected,
-          classes: classes.trim(),
-          disabled: this.isDayDisabled(day),
-          iso: iso
-        })
-        day = day.clone().add(1, 'day')
+          days.push({
+            mnt: day,
+            selected: selected,
+            classes: classes.trim(),
+            disabled: this.isDayDisabled(day),
+            iso: isoDate
+          })
+          day = day.clone().add(1, 'day')
+        }
+        this.renderDays = days
       }
-      this.renderDays = days
     },
     isDaySelected: function (iso) {
       if (this.selectedDays.length > 0) {
@@ -481,7 +526,7 @@ export default {
       if (this.selectedDays.length === 0) {
         this.$emit('input', [this.displayDate.clone()])
       } else {
-        this.$emit('input', this.getSelectedDays())
+        this.emitSelectedDays()
       }
     },
     selectHour: function (hour) {
@@ -589,6 +634,8 @@ export default {
     const self = this
     if (this.inline) {
       this.targetPortal = 'portal-inline-' + this.componentUID
+    } else if (this.modal) {
+      this.targetPortal = 'portal-modal-' + this.componentUID
     } else {
       this.targetPortal = 'portal-dropdown-' + this.componentUID
     }
@@ -607,6 +654,7 @@ export default {
         newDisplayDate = this.startDate.clone()
       }
     }
+    console.log('   --------->>>   DISPLAY DATE: ', newDisplayDate)
     if (newDisplayDate === null) {
       newDisplayDate = moment()
     }
@@ -674,8 +722,10 @@ export default {
       this.displayYears = years
     },
     selectedTime: function (val) {
-      const tokens = val.split(':')
-      this.displayDate = this.displayDate.clone().hours(parseInt(tokens[0])).minutes(parseInt(tokens[1]))
+      if (this.timeEnabled === true) {
+        const tokens = val.split(':')
+        this.displayDate = this.displayDate.clone().hours(parseInt(tokens[0])).minutes(parseInt(tokens[1]))
+      }
     },
     selectedDays: function (val) {
       if (val.length > 0) {
@@ -761,6 +811,21 @@ export default {
             }
         }
 
+        .kydemy-date-picker-modal {
+            .modal-content {
+                overflow: visible;
+                .modal-close-button {
+                    position: absolute;
+                    top: -2rem;
+                    right: -3rem;
+                    @media (max-width: 639px) {
+                        right: 0;
+                        top: -3rem;
+                    }
+                }
+            }
+        }
+
         &.is-time-picker {
             .dropdown .dropdown-menu:after {
                 border-bottom-color: $white;
@@ -821,21 +886,21 @@ export default {
         }
         &.is-normal {
             max-width: 23rem;
-            min-width: 15rem;
+            min-width: 9rem;
             .dropdown .dropdown-content {
                 min-width: 22rem;
             }
         }
         &.is-small {
             max-width: 20rem;
-            min-width: 10rem;
+            min-width: 8rem;
             .dropdown .dropdown-content {
                 min-width: 10rem;
             }
         }
         &.is-large {
             max-width: 40rem;
-            min-width: 20rem;
+            min-width: 16rem;
             .dropdown .dropdown-content {
                 min-width: 20rem;
             }
@@ -897,8 +962,10 @@ export default {
                 text-align: center;
                 flex: none;
                 width: 14.285714286%;
-                padding-top: 0.25rem;
-                padding-bottom: 0.25rem;
+                padding-top: 0rem;
+                padding-bottom: 0rem;
+                margin-top: 0rem;
+                margin-bottom: 0rem;
                 .button {
                     width: 100%;
                     text-align: center;
@@ -1088,5 +1155,4 @@ export default {
             overflow: hidden;
         }
     }
-
 </style>
