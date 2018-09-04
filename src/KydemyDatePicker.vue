@@ -9,7 +9,7 @@
                     <portal-target :name="'portal-modal-'+componentUID"></portal-target>
                     <button class="button is-primary is-rounded modal-close-button" @click="showDateTimePicker=false">
                         <span class="icon">
-                            <i class="fas fa-times"></i>
+                            <font-awesome-icon icon="times"/>
                         </span>
                     </button>
                 </div>
@@ -44,7 +44,7 @@
                                 <div class="level-left">
                                     <a @click="prevYear">
                                 <span class="icon has-text-white">
-                                  <i class="fas fa-angle-left"></i>
+                                  <font-awesome-icon icon="angle-left"/>
                                 </span>
                                     </a>
                                 </div>
@@ -56,7 +56,7 @@
                                 <div class="level-right">
                                     <a @click="nextYear">
                                     <span class="icon has-text-white">
-                                      <i class="fas fa-angle-right"></i>
+                                      <font-awesome-icon icon="angle-right"/>
                                     </span>
                                     </a>
                                 </div>
@@ -66,7 +66,7 @@
                                     <div class="level-item">
                                         <a @click="prevMonth">
                                         <span class="icon is-large has-text-white">
-                                          <i class="fas fa-lg fa-chevron-circle-left"></i>
+                                            <font-awesome-icon icon="chevron-circle-left" size="lg"/>
                                         </span>
                                         </a>
                                     </div>
@@ -80,7 +80,7 @@
                                     <div class="level-item">
                                         <a @click="nextMonth">
                                         <span class="icon is-large has-text-white">
-                                            <i class="fas fa-lg fa-chevron-circle-right"></i>
+                                            <font-awesome-icon icon="chevron-circle-right" size="lg"/>
                                         </span>
                                         </a>
                                     </div>
@@ -119,10 +119,10 @@
                                                     @click="selectYear(year)"
                                                     :class="{'is-primary': displayDate.year() === year }">
                                             <span class="icon" v-if="year === -1">
-                                                <i class="fas fa-arrow-circle-left"></i>
+                                                <font-awesome-icon icon="arrow-circle-left"/>
                                             </span>
                                                 <span class="icon" v-else-if="year === 1">
-                                                <i class="fas fa-arrow-circle-right"></i>
+                                                <font-awesome-icon icon="arrow-circle-right"/>
                                             </span>
                                                 <span v-else>{{ year }}</span>
                                             </button>
@@ -219,20 +219,18 @@
 <script>
 import moment from 'moment'
 import business from 'moment-business'
-import fontawesome from '@fortawesome/fontawesome'
-import faChevronCircleLeft from '@fortawesome/fontawesome-free-solid/faChevronCircleLeft'
-import faChevronCircleRight from '@fortawesome/fontawesome-free-solid/faChevronCircleRight'
-import faAngleLeft from '@fortawesome/fontawesome-free-solid/faAngleLeft'
-import faAngleRight from '@fortawesome/fontawesome-free-solid/faAngleRight'
-import faArrowCircleLeft from '@fortawesome/fontawesome-free-solid/faArrowCircleLeft'
-import faArrowCircleRight from '@fortawesome/fontawesome-free-solid/faArrowCircleRight'
+import { library } from '@fortawesome/fontawesome-svg-core'
 
-fontawesome.library.add(faChevronCircleLeft)
-fontawesome.library.add(faChevronCircleRight)
-fontawesome.library.add(faAngleLeft)
-fontawesome.library.add(faAngleRight)
-fontawesome.library.add(faArrowCircleLeft)
-fontawesome.library.add(faArrowCircleRight)
+import {
+  faAngleLeft,
+  faAngleRight,
+  faArrowCircleLeft,
+  faArrowCircleRight,
+  faChevronCircleLeft,
+  faChevronCircleRight
+} from '@fortawesome/free-solid-svg-icons'
+
+library.add(faChevronCircleLeft, faChevronCircleRight, faAngleLeft, faAngleRight, faArrowCircleLeft, faArrowCircleRight)
 
 export default {
   props: {
