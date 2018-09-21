@@ -9,7 +9,7 @@
                     <portal-target :name="'portal-modal-'+componentUID"></portal-target>
                     <button class="button is-primary is-rounded modal-close-button" @click="showDateTimePicker=false">
                         <span class="icon">
-                            <font-awesome-icon icon="times"/>
+                            <i class="fa fa-times"></i>
                         </span>
                     </button>
                 </div>
@@ -44,7 +44,7 @@
                                 <div class="level-left">
                                     <a @click="prevYear">
                                 <span class="icon has-text-white">
-                                  <font-awesome-icon icon="angle-left"/>
+                                  <i class="fa fa-angle-left"></i>
                                 </span>
                                     </a>
                                 </div>
@@ -56,7 +56,7 @@
                                 <div class="level-right">
                                     <a @click="nextYear">
                                     <span class="icon has-text-white">
-                                      <font-awesome-icon icon="angle-right"/>
+                                      <i class="fa fa-angle-right"></i>
                                     </span>
                                     </a>
                                 </div>
@@ -66,7 +66,7 @@
                                     <div class="level-item">
                                         <a @click="prevMonth">
                                         <span class="icon is-large has-text-white">
-                                            <font-awesome-icon icon="chevron-circle-left" size="lg"/>
+                                          <i class="fa fa-lg fa-chevron-circle-left"></i>
                                         </span>
                                         </a>
                                     </div>
@@ -80,7 +80,7 @@
                                     <div class="level-item">
                                         <a @click="nextMonth">
                                         <span class="icon is-large has-text-white">
-                                            <font-awesome-icon icon="chevron-circle-right" size="lg"/>
+                                            <i class="fa fa-lg fa-chevron-circle-right"></i>
                                         </span>
                                         </a>
                                     </div>
@@ -119,10 +119,10 @@
                                                     @click="selectYear(year)"
                                                     :class="{'is-primary': displayDate.year() === year }">
                                             <span class="icon" v-if="year === -1">
-                                                <font-awesome-icon icon="arrow-circle-left"/>
+                                                <i class="fa fa-arrow-circle-left"></i>
                                             </span>
                                                 <span class="icon" v-else-if="year === 1">
-                                                <font-awesome-icon icon="arrow-circle-right"/>
+                                                <i class="fa fa-arrow-circle-right"></i>
                                             </span>
                                                 <span v-else>{{ year }}</span>
                                             </button>
@@ -219,18 +219,6 @@
 <script>
 import moment from 'moment'
 import business from 'moment-business'
-import { library } from '@fortawesome/fontawesome-svg-core'
-
-import {
-  faAngleLeft,
-  faAngleRight,
-  faArrowCircleLeft,
-  faArrowCircleRight,
-  faChevronCircleLeft,
-  faChevronCircleRight
-} from '@fortawesome/free-solid-svg-icons'
-
-library.add(faChevronCircleLeft, faChevronCircleRight, faAngleLeft, faAngleRight, faArrowCircleLeft, faArrowCircleRight)
 
 export default {
   props: {
@@ -652,7 +640,6 @@ export default {
         newDisplayDate = this.startDate.clone()
       }
     }
-    console.log('   --------->>>   DISPLAY DATE: ', newDisplayDate)
     if (newDisplayDate === null) {
       newDisplayDate = moment()
     }
