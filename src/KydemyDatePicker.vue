@@ -22,10 +22,10 @@
                            :placeholder="placeholder"
                            @click="showDateTimePicker = !showDateTimePicker"/>
                     <span v-if="iconLeft" class="icon is-left" :class="[`is-${sizeClass}`]">
-                        <i :class="iconLeft"></i>
+                        <font-awesome-icon :icon="iconLeft"/>
                     </span>
                     <span v-if="iconRight" class="icon is-right" :class="[`is-${sizeClass}`]">
-                        <i :class="iconRight"></i>
+                        <font-awesome-icon :icon="iconRight"/>
                     </span>
                 </p>
             </div>
@@ -652,7 +652,6 @@ export default {
         newDisplayDate = this.startDate.clone()
       }
     }
-    console.log('   --------->>>   DISPLAY DATE: ', newDisplayDate)
     if (newDisplayDate === null) {
       newDisplayDate = moment()
     }
