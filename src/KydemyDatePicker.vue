@@ -257,8 +257,8 @@ export default {
     inline: {type: Boolean, default: false},
     modal: {type: Boolean, default: false},
     placeholder: String,
-    iconLeft: String,
-    iconRight: String,
+    iconLeft: String | Array,
+    iconRight: String | Array,
     isUp: {type: Boolean, default: false}
   },
   data () {
