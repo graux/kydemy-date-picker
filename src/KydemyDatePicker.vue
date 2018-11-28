@@ -1,6 +1,6 @@
 <template>
     <div class="kydemy-datetime-picker"
-         :class="[`is-${sizeClass}`, {'is-date-picker': dateEnabled, 'is-time-picker': timeEnabled}]">
+         :class="[`is-${sizeClass}`, {'is-date-picker': dateEnabled, 'is-time-picker': timeEnabled, 'is-disabled': disabledControl}]">
         <portal-target :name="'portal-inline-'+componentUID"></portal-target>
         <transition name="fade" :duration="300" v-if="modal && showDateTimePicker">
             <div class="modal is-active kydemy-date-picker-modal">
@@ -49,7 +49,7 @@
                                     </a>
                                 </div>
                                 <div class="level-item">
-                                    <button class="button is-primary" @click="selYear">
+                                    <button class="button is-primary" @click="selYear" :disabled="disabledControl">
                                         <span class="has-text-white">{{ displayDate.format('YYYY') }}</span>
                                     </button>
                                 </div>
@@ -72,7 +72,7 @@
                                     </div>
                                 </div>
                                 <div class="level-item">
-                                    <button class="button is-large is-primary" @click="selMonth">
+                                    <button class="button is-large is-primary" @click="selMonth" :disabled="disabledControl">
                                         <span class="title is-uppercase has-text-white">{{ displayDate.format('MMMM') }}</span>
                                     </button>
                                 </div>
@@ -102,8 +102,8 @@
                                              class="column week-day"
                                              :class="[day.classes]">
                                             <button class="is-white button is-rounded is-paddingless"
-                                                    :class="{'is-primary': day.selected, 'is-disabled': day.disabled}"
-                                                    :disabled="day.disabled"
+                                                    :class="{'is-primary': day.selected, 'is-disabled': disabledControl || day.disabled}"
+                                                    :disabled="disabledControl || day.disabled"
                                                     @click="selectDay(day)">
                                                 {{ day.mnt.format('D')}}
                                             </button>
@@ -116,6 +116,7 @@
                                         <div class="column is-one-fifth is-year" v-for="year in displayYears"
                                              :key="'year_'+year">
                                             <button class="button is-white is-normal is-size-6"
+                                                    :disabled="disabledControl"
                                                     @click="selectYear(year)"
                                                     :class="{'is-primary': displayDate.year() === year }">
                                             <span class="icon" v-if="year === -1">
@@ -136,7 +137,7 @@
                                              v-for="(month,index) in displayMonths"
                                              :key="'month_'+index">
                                             <button class="button is-white is-medium is-uppercase is-size-6"
-                                                    @click="selectMonth(month)"
+                                                    @click="selectMonth(month)" :disabled="disabledControl"
                                                     :class="{'is-primary': month.mnt.isSame(displayDate,'month')}">
                                                 {{ month.name }}
                                             </button>
@@ -242,7 +243,7 @@ export default {
     is24h: {type: Boolean, default: false},
     minDate: Object | String,
     maxDate: Object | String,
-    enabledDates: Object,
+    enabledDates: Array,
     dimWeekends: {type: Boolean, default: false},
     highlighted: Array,
     disabled: Array,
@@ -443,12 +444,25 @@ export default {
           }
         }
       }
+      if (this.enabledDates && this.enabledDates.length > 0) {
+        const found = this.enabledDates.filter(ed => ed.isSame(day, 'day'))
+        if (found.length === 0) {
+          return true
+        }
+      }
       return false
     },
     isDayHighlighted: function (day) {
       if (this.highlighted && this.highlighted.length > 0) {
         for (let index = 0; index < this.highlighted.length; index++) {
           if (day.isSame(this.highlighted[index], 'day')) {
+            return true
+          }
+        }
+      }
+      if (this.enabledDates && this.enabledDates.length > 0) {
+        for (let index = 0; index < this.enabledDates.length; index++) {
+          if (day.isSame(this.enabledDates[index], 'day')) {
             return true
           }
         }
@@ -769,6 +783,10 @@ export default {
       } else {
         window.removeEventListener('keydown', this.onKeyDown)
       }
+    },
+    enabledDates () {
+      this.oldDisplayDate = null
+      this.redraw()
     }
   }
 }
@@ -780,6 +798,7 @@ export default {
         @media (max-width: 768px) {
             margin: 0 auto;
         }
+
         .dropdown {
             .dropdown-menu {
                 transition: top 0.3s, bottom 0.3s, visibility 0s, opacity 0.3s;
@@ -788,17 +807,20 @@ export default {
                 display: block;
                 visibility: hidden;
             }
+
             &.is-active .dropdown-menu {
                 top: 100%;
                 opacity: 1;
                 display: block;
                 visibility: visible;
             }
+
             &.is-up {
                 .dropdown-menu {
                     top: auto;
                     bottom: 200%;
                 }
+
                 &.is-active .dropdown-menu {
                     bottom: 100%;
                     top: auto;
@@ -811,6 +833,7 @@ export default {
         .kydemy-date-picker-modal {
             .modal-content {
                 overflow: visible;
+
                 .modal-close-button {
                     position: absolute;
                     top: -2rem;
@@ -828,21 +851,25 @@ export default {
                 border-bottom-color: $white;
             }
         }
+
         &.is-date-picker {
             .dropdown .dropdown-menu:after {
                 border-bottom-color: $primary;
             }
         }
+
         .dropdown {
             .dropdown-menu {
                 left: auto;
                 right: 0;
                 padding: 0;
                 margin-top: 0.75rem;
+
                 .dropdown-content {
                     padding: 0;
                 }
             }
+
             .dropdown-menu:after, .dropdown-menu:before {
                 bottom: 100%;
                 left: 90%;
@@ -853,51 +880,62 @@ export default {
                 position: absolute;
                 pointer-events: none;
             }
+
             &.is-up {
                 .dropdown-menu:after, .dropdown-menu:before {
                     bottom: auto;
                     top: 100%;
                 }
             }
+
             .dropdown-menu:after {
                 border-color: rgba(#999999, 0);
                 border-width: 10px;
                 margin-left: -10px;
             }
+
             .dropdown-menu:before {
                 border-color: rgba(#999999, 0);
                 border-bottom-color: rgba(#999999, 0.3);
                 border-width: 12px;
                 margin-left: -12px;
             }
+
             &.is-up {
                 .dropdown-menu:after {
                     border-bottom-color: transparent;
                     border-top-color: $white;
                 }
+
                 .dropdown-menu:before {
                     border-bottom-color: transparent;
                     border-top-color: rgba(#999999, 0.3);
                 }
             }
         }
+
         &.is-normal {
             max-width: 23rem;
             min-width: 9rem;
+
             .dropdown .dropdown-content {
                 min-width: 22rem;
             }
         }
+
         &.is-small {
             max-width: 20rem;
             min-width: 8rem;
+
             .dropdown .dropdown-content {
                 min-width: 10rem;
             }
         }
+
         &.is-large {
             max-width: 40rem;
             min-width: 16rem;
+
             .dropdown .dropdown-content {
                 min-width: 20rem;
             }
@@ -907,13 +945,16 @@ export default {
             .dropdown {
                 .dropdown-menu {
                     left: -10%;
+
                     &:before, &:after {
                         left: 55%;
                     }
+
                     .dropdown-content {
                         max-width: 110%;
                         min-width: 110%;
                         width: 110%;
+
                         .card-content {
                             padding: 0.5rem 0.2rem;
                         }
@@ -928,22 +969,27 @@ export default {
                 background: $white;
                 padding-top: 1rem;
                 padding-bottom: 1rem;
+
                 .columns {
                     margin-top: 0;
                     margin-bottom: 0;
                 }
             }
+
             .card {
                 max-height: 0;
                 transition: max-height 0.15s;
                 overflow: hidden;
             }
+
             &.is-month .card {
                 max-height: 24rem;
             }
+
             &.is-year .card {
                 max-height: 23rem;
             }
+
             &.is-day .card {
                 max-height: 27rem;
             }
@@ -955,6 +1001,7 @@ export default {
                     color: rgba($cyan, 0.54);
                 }
             }
+
             .week-day {
                 text-align: center;
                 flex: none;
@@ -963,53 +1010,65 @@ export default {
                 padding-bottom: 0rem;
                 margin-top: 0rem;
                 margin-bottom: 0rem;
+
                 .button {
                     width: 100%;
                     text-align: center;
                     font-weight: bold;
                     padding: 0.25rem;
+
                     &:active, &:focus {
                         outline: none;
                     }
+
                     &::-moz-focus-inner {
                         border: 0;
                     }
                 }
+
                 &.is-weekend {
                     .button {
                         font-weight: normal;
                         color: $grey-dark;
                     }
                 }
+
                 &.is-adjacent {
                     .button {
                         font-weight: normal;
                         color: $grey-lighter;
                     }
                 }
+
                 &.is-today {
                     .button {
                         border: solid 1px $primary;
                     }
                 }
+
                 &.is-hightlighted {
                     .button {
-                        background-color: rgba($primary, 0.1);
+                        background-color: rgba($primary, 0.3);
                     }
                 }
+
                 &.in-range {
                     background-color: rgba($primary, 0.2);
+
                     .button {
                         background-color: transparent;
                         color: rgba($primary, 0.6);
                         font-weight: normal;
                     }
                 }
+
                 &.is-selected {
                     position: relative;
+
                     .button {
                         color: $white;
                     }
+
                     &.range-start::before, &.range-end::before {
                         background-color: rgba($primary, 0.2);
                         width: 50%;
@@ -1019,14 +1078,17 @@ export default {
                         content: "";
                         top: 0;
                     }
+
                     &.range-start::before {
                         left: 50%;
                         border-radius: 100% 0 0 100%;
                     }
+
                     &.range-end::before {
                         left: 0;
                         border-radius: 0 100% 100% 0;
                     }
+
                     &.is-selected {
                         .button {
                             background: $primary;
@@ -1040,45 +1102,55 @@ export default {
             background: $primary;
             display: block;
             flex: none;
+
             .card-header-title {
                 width: 100%;
                 display: block;
                 flex: none;
             }
+
             .icon {
                 position: static;
                 left: auto;
                 top: auto;
                 width: 3rem;
             }
+
             .level-year, .level-month {
                 width: 100%;
+
                 .button {
                     width: 100%;
                     border: none;
                     padding-top: 0.1rem;
                     padding-bottom: 0.1rem;
                     height: auto;
+
                     span {
                         text-shadow: 0 0 0.1rem adjust-color($primary, $lightness: -30%, $alpha: -0.8);
                     }
                 }
+
                 .level-item {
                     margin: 0;
                 }
             }
+
             .level-year {
                 margin-bottom: 0;
+
                 .icon {
                     width: 3rem;
                 }
             }
+
             .level-month {
                 .title {
                     /*padding-bottom: 0.3rem;*/
                 }
             }
         }
+
         .kydemy-month-picker, .kydemy-year-picker {
             .is-month, .is-year {
                 .button {
@@ -1086,25 +1158,30 @@ export default {
                 }
             }
         }
+
         .kydemy-year-picker {
             .is-year {
                 padding-top: 0.25rem;
                 padding-bottom: 0.25rem;
             }
         }
+
         .kydemy-time-picker {
             .card {
                 overflow: hidden;
+
                 .card-content {
                     padding-top: 0.5rem;
                     padding-bottom: 0.5rem;
                 }
             }
+
             .columns {
                 .column {
                     .button {
                         width: 100%;
                     }
+
                     .separator {
                         display: block;
                         padding-top: calc(0.375em - 1px);
@@ -1114,12 +1191,14 @@ export default {
                     }
                 }
             }
+
             .kydemy-hour-picker, .kydemy-minute-picker {
                 .columns .column {
                     padding-top: 0;
                     padding-bottom: 0;
                 }
             }
+
             .kydemy-minute-picker {
                 .column {
                     text-align: center;
@@ -1127,14 +1206,17 @@ export default {
                     width: 16.666666667%;
                 }
             }
+
             .kydemy-hour-picker {
                 .column {
                     text-align: center;
                     flex: none;
                 }
+
                 &.is-12-hour .column {
                     width: 16.666666667%;
                 }
+
                 &.is-24-hour .column {
                     width: 12.5%;
                 }
@@ -1147,6 +1229,7 @@ export default {
             position: absolute;
             top: 0;
         }
+
         .card-content {
             background: white;
             overflow: hidden;
