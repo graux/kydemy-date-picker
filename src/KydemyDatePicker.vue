@@ -19,8 +19,7 @@
             <div class="dropdown-trigger">
                 <p class="control" :class="{'has-icons-left': iconLeft, 'has-icons-right': iconRight}">
                     <input type="text" readonly class="input" :class="[`is-${sizeClass}`]" v-model="displayDateFormat"
-                           :placeholder="placeholder"
-                           @click="showDateTimePicker = !showDateTimePicker"/>
+                           :placeholder="placeholder" :disabled="disabledControl" @click="toggleDatePicker"/>
                     <span v-if="iconLeft" class="icon is-left" :class="[`is-${sizeClass}`]">
                         <font-awesome-icon :icon="iconLeft"/>
                     </span>
@@ -72,7 +71,8 @@
                                     </div>
                                 </div>
                                 <div class="level-item">
-                                    <button class="button is-large is-primary" @click="selMonth" :disabled="disabledControl">
+                                    <button class="button is-large is-primary" @click="selMonth"
+                                            :disabled="disabledControl">
                                         <span class="title is-uppercase has-text-white">{{ displayDate.format('MMMM') }}</span>
                                     </button>
                                 </div>
@@ -285,6 +285,11 @@ export default {
     }
   },
   methods: {
+    toggleDatePicker () {
+      if (this.disabledControl !== true) {
+        this.showDateTimePicker = !this.showDateTimePicker
+      }
+    },
     selectDay: function (selDay) {
       const selDate = selDay.iso
       if (this.timeEnabled === true && (!self.selectedTime || self.selectedTime.length > 0)) {
