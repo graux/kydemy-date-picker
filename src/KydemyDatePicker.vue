@@ -73,7 +73,8 @@
                                 <div class="level-item">
                                     <button class="button is-large is-primary" @click="selMonth"
                                             :disabled="disabledControl">
-                                        <span class="title is-uppercase has-text-white">{{ displayDate.format('MMMM') }}</span>
+                                        <span class="title is-uppercase has-text-white is-hidden-mobile">{{ displayDate.format('MMMM') }}</span>
+                                        <span class="title is-uppercase has-text-white is-hidden-tablet">{{ displayDate.format('MMM') }}</span>
                                     </button>
                                 </div>
                                 <div class="level-right">
